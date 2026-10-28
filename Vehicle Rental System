@@ -1,0 +1,140 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+
+namespace DriveEasy
+{
+   
+    public class Vehicle
+    {
+        public int VehicleId { get; }
+        public string Brand { get; }
+        public decimal DailyRate { get; }
+
+        public Vehicle(int vehicleId, string brand, decimal dailyRate)
+        {
+            VehicleId = vehicleId;
+            Brand = brand;
+            DailyRate = dailyRate;
+        }
+
+        public virtual decimal CalculateRentalCost(int days)
+        {
+            return DailyRate * days;
+        }
+
+        public virtual string DisplayInfo()
+        {
+            return $"Vehicle [ID={VehicleId}, Brand={Brand}]";
+        }
+    }
+
+   
+    public class Car : Vehicle
+    {
+        public int NumSeats { get; }
+
+        public Car(int vehicleId, string brand, decimal dailyRate, int numSeats)
+            : base(vehicleId, brand, dailyRate)
+        {
+            NumSeats = numSeats;
+        }
+
+      
+        public override decimal CalculateRentalCost(int days)
+        {
+            return base.CalculateRentalCost(days) * 1.10m;
+        }
+
+        public override string DisplayInfo()
+        {
+            return $"Car [ID={VehicleId}, Brand={Brand}, Seats={NumSeats}]";
+        }
+    }
+
+    public class Motorcycle : Vehicle
+    {
+        public int EngineCapacity { get; }
+
+        public Motorcycle(int vehicleId, string brand, decimal dailyRate, int engineCapacity)
+            : base(vehicleId, brand, dailyRate)
+        {
+            EngineCapacity = engineCapacity;
+        }
+   
+        public override decimal CalculateRentalCost(int days)
+        {
+            return base.CalculateRentalCost(days) * 0.95m;
+        }
+
+        public override string DisplayInfo()
+        {
+            return $"Motorcycle [ID={VehicleId}, Brand={Brand}, CC={EngineCapacity}]";
+        }
+    }
+
+   
+    public class Customer
+    {
+        public string Name { get; }
+        public string LicenseNumber { get; }
+        private Vehicle rentedVehicle;
+
+        public Customer(string name, string licenseNumber)
+        {
+            Name = name;
+            LicenseNumber = licenseNumber;
+        }
+
+        public void RentVehicle(Vehicle vehicle)
+        {
+            rentedVehicle = vehicle;
+        }
+
+        public void ReturnVehicle()
+        {
+            rentedVehicle = null;
+        }
+
+        public void PrintRentalSummary(int days)
+        {
+            Console.WriteLine($"Customer: {Name} (License: {LicenseNumber})");
+
+            if (rentedVehicle == null)
+            {
+                Console.WriteLine("No vehicle currently rented.");
+                return;
+            }
+
+            Console.WriteLine($"Rented: {rentedVehicle.Brand} {rentedVehicle.GetType().Name}");
+
+            decimal cost = rentedVehicle.CalculateRentalCost(days);
+            Console.WriteLine($"Total Cost for {days} days: ${cost:F2}");
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+
+            
+            Vehicle car = new Car(101, "Toyota", 100m, 5);
+            Vehicle motorcycle = new Motorcycle(102, "Yamaha", 50m, 150);
+
+            Console.WriteLine("=== Vehicle Rental Costs ===");
+            List<Vehicle> vehicles = new List<Vehicle> { car, motorcycle };
+            foreach (Vehicle v in vehicles)
+            {
+                Console.WriteLine($"{v.DisplayInfo()} -> Cost for 3 days: ${v.CalculateRentalCost(3):F2}");
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("=== Customer Rental Summary ===");
+            Customer alice = new Customer("Alice", "AB1234");
+            alice.RentVehicle(car);
+            alice.PrintRentalSummary(5);
+        }
+    }
+}
